@@ -10,6 +10,11 @@ The program was divided into separate functions to ensure it ran more efficientl
 
 Besides the topics learned during class, I used Google and Xpert Learning for help. Most of the help was for debugging. I also used The following snippets from Xpert Learning Assistant:
 
-- For Each ws In ThisWorkbook.Worksheets
-        Set dataRange = ws.Range("K1:K" & ws.Cells(ws.Rows.Count, "A").End(xlUp).Row)
-- maxTicker = cell.Offset(0, -2).Value 'Register the value of 2 cells to the left of MaxVal cell.
+- For Each ws In ThisWorkbook.Worksheets 'Expression for class was giving me an error message
+- Set dataRange = ws.Range("K1:K" & ws.Cells(ws.Rows.Count, "A").End(xlUp).Row)  'Expression for class was giving me an error message
+- For Each cell In dataRange 'Cell declared as Range
+- If IsNumeric(cell.Value) Then 'Checks if the value is a number
+- maxTicker = cell.Offset(0, -1).Value 'Looks for the value of the cell located 1 column to the left
+- ws.Columns("B:B").NumberFormat = "mm/dd/yyyy"  'Format date
+- ws.Columns("J:J").NumberFormat = "$#,##0.00"   'Format currency     
+- ws.Columns("K:K").NumberFormat = "0.00%"       'Format percentage 
