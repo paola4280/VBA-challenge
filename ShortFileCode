@@ -9,11 +9,11 @@ Sub Stock()
         lastRow = ws.Cells(Rows.Count, 2).End(xlUp).Row
         
        'Replace Timestamp with Date
-        'For i = 2 To lastRow
-        '    dateStr = ws.Range("B" & i).Value
-        '    DateValue = Left(dateStr, 4) & "/" & Mid(dateStr, 5, 2) & "/" & Right(dateStr, 2)
-        '    ws.Range("B" & i).Value = DateValue
-        'Next i
+        For i = 2 To lastRow
+            dateStr = ws.Range("B" & i).Value
+            DateValue = Left(dateStr, 4) & "/" & Mid(dateStr, 5, 2) & "/" & Right(dateStr, 2)
+            ws.Range("B" & i).Value = DateValue
+        Next i
         
         'Name the new columns
         ws.Cells(1, 9).Value = "Ticker"
