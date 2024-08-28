@@ -1,179 +1,1 @@
-Sub Stock()
-    Dim dateStr As String
-    Dim DateValue As Date
-    Dim ws As Worksheet
-    Dim lastRow As Long
-    Dim i, j As Long
-    
-    For Each ws In ThisWorkbook.Worksheets
-        lastRow = ws.Cells(Rows.Count, 2).End(xlUp).Row
-        
-       'Replace Timestamp with Date
-        For i = 2 To lastRow
-            dateStr = ws.Range("B" & i).Value
-            DateValue = Left(dateStr, 4) & "/" & Mid(dateStr, 5, 2) & "/" & Right(dateStr, 2)
-            ws.Range("B" & i).Value = DateValue
-        Next i
-        
-        'Name the new columns
-        ws.Cells(1, 9).Value = "Ticker"
-        ws.Cells(1, 10).Value = "Quarterly Change"
-        ws.Cells(1, 11).Value = "Percent change"
-        ws.Cells(1, 12).Value = "Total Stock Volume"
-        
-        'Create the Summary table
-        Dim TickerName As String
-        Dim OpenAmt As Double
-        Dim CloseAmt As Double
-        Dim QuartChange As Double
-        Dim PercChange As Double
-        Dim Volume As Double
-        Dim SumRow As Integer
-        
-        OpenAmt = 0
-        CloseAmt = 0
-        QuartChange = 0
-        SumRow = 2
-        Volume = 0
-        
-        For j = 2 To lastRow
-            If ws.Cells(j + 1, 1).Value = ws.Cells(j, 1).Value Then
-                TickerName = ws.Cells(j, 1).Value
-                OpenAmt = OpenAmt + ws.Cells(j, 3)
-                CloseAmt = CloseAmt + ws.Cells(j, 6)
-                QuartChange = OpenAmt - CloseAmt
-                Volume = Volume + ws.Cells(j, 7)
-            ElseIf ws.Cells(j + 1, 1).Value <> ws.Cells(j, 1).Value Then
-                TickerName = ws.Cells(j, 1).Value
-                OpenAmt = OpenAmt + ws.Cells(j, 3)
-                CloseAmt = CloseAmt + ws.Cells(j, 6)
-                QuartChange = OpenAmt - CloseAmt
-                PercChange = (OpenAmt - CloseAmt) / OpenAmt * 100
-                Volume = Volume + ws.Cells(j, 7)
-                ws.Range("I" & SumRow).Value = TickerName
-                ws.Range("J" & SumRow).Value = QuartChange
-                ws.Range("K" & SumRow).Value = PercChange
-                ws.Range("L" & SumRow).Value = Volume
-                SumRow = SumRow + 1
-                OpenAmt = 0
-                Volume = 0
-                CloseAmt = 0
-            End If
-        Next j
-            
-    Next ws
-End Sub
-        
-Sub FindMaxValueAndTicker()
-    Dim ws As Worksheet
-    Dim dataRange As Range
-    Dim cell As Range
-    Dim maxVal As Double
-    Dim maxTicker As String
-    
-    For Each ws In ThisWorkbook.Worksheets
-        Set dataRange = ws.Range("K1:K" & ws.Cells(ws.Rows.Count, "K").End(xlUp).Row)
-    
-        'Create the Greatest Increase, Decrease and volume Table
-       ws.Cells(1, 16).Value = "Ticker"
-       ws.Cells(1, 17).Value = "Value"
-       ws.Cells(2, 15).Value = "Greatest Increase"
-       ws.Cells(3, 15).Value = "Greatest Decrease"
-       ws.Cells(4, 15).Value = "Greatest Total Volume"
-    
-        maxVal = -9999999
-        
-        For Each cell In dataRange
-            If IsNumeric(cell.Value) Then
-                If cell.Value > maxVal Then
-                    maxVal = cell.Value
-                    maxTicker = cell.Offset(0, -2).Value
-                End If
-            End If
-        Next cell
-        
-        ws.Range("Q2").Value = maxVal
-        ws.Range("P2").Value = maxTicker
-    Next ws
-End Sub
-
-Sub FindMinimumValueAndTicker()
-    Dim ws As Worksheet
-    Dim dataRange As Range
-    Dim cell As Range
-    Dim minVal As Double
-    Dim minTicker As String
-    
-    For Each ws In ThisWorkbook.Worksheets
-        Set dataRange = ws.Range("K1:K" & ws.Cells(ws.Rows.Count, "K").End(xlUp).Row)
-    
-        minVal = 9999999999#
-        
-        For Each cell In dataRange
-            If IsNumeric(cell.Value) Then
-                If cell.Value < minVal Then
-                    minVal = cell.Value
-                    minTicker = cell.Offset(0, -2).Value
-                End If
-            End If
-        Next cell
-        
-        ws.Range("Q3").Value = minVal
-        ws.Range("P3").Value = minTicker
-    Next ws
-End Sub
-
-Sub GreatestTotalVolume()
-Dim ws As Worksheet
-    Dim dataRange As Range
-    Dim cell As Range
-    Dim maxVol As Double
-    Dim maxTicker As String
-    
-    For Each ws In ThisWorkbook.Worksheets
-        Set dataRange = ws.Range("L1:L" & ws.Cells(ws.Rows.Count, "L").End(xlUp).Row)
-  
-        maxVol = -9999999
-        
-        For Each cell In dataRange
-            If IsNumeric(cell.Value) Then
-                If cell.Value > maxVol Then
-                    maxVol = cell.Value
-                    maxTicker = cell.Offset(0, -3).Value
-                End If
-            End If
-        Next cell
-        
-        ws.Range("Q4").Value = maxVol
-        ws.Range("P4").Value = maxTicker
-    Next ws
-End Sub
-
-Sub formatColumns()
-    Dim ws As Worksheet
-    Dim lastRow As Long
-    Dim QuarterlyChange As Double
-    
-    For Each ws In ThisWorkbook.Worksheets
-        lastRow = ws.Cells(Rows.Count, 10).End(xlUp).Row
-        ws.Columns("B:B").NumberFormat = "mm/dd/yyyy"
-        ws.Columns("J:J").NumberFormat = "$#,##0.00"
-        ws.Columns("K:K").NumberFormat = "0.00%"
-        ws.Range("Q2:Q3").NumberFormat = "0.00%"
-        ws.Range("Q4").NumberFormat = "$#,###,##0.00"
-    
-        For i = 2 To lastRow
-            QuarterlyChange = ws.Range("J" & i).Value
-            If QuarterlyChange > 0 Then
-                ws.Range("J" & i).Interior.Color = vbGreen
-            ElseIf QuarterlyChange < 0 Then
-                ws.Range("J" & i).Interior.Color = vbRed
-            Else
-                ws.Range("J" & i).Interior.ColorIndex = xlNone
-                
-            End If
-        Next i
-    Next ws
-End Sub
-
-
+Sub Stock()    Dim dateStr As String    Dim DateValue As Date    Dim ws As Worksheet    Dim lastRow As Long    Dim i, j As Long        For Each ws In ThisWorkbook.Worksheets        lastRow = ws.Cells(Rows.Count, 2).End(xlUp).Row               'Replace Timestamp with Date        For i = 2 To lastRow            dateStr = ws.Range("B" & i).Value            DateValue = Left(dateStr, 4) & "/" & Mid(dateStr, 5, 2) & "/" & Right(dateStr, 2)            ws.Range("B" & i).Value = DateValue        Next i                'Name the new columns        ws.Cells(1, 9).Value = "Ticker"        ws.Cells(1, 10).Value = "Quarterly Change"        ws.Cells(1, 11).Value = "Percent change"        ws.Cells(1, 12).Value = "Total Stock Volume"                'Create the Summary table        Dim TickerName As String        Dim OpenAmt As Double        Dim CloseAmt As Double        Dim QuartChange As Double        Dim PercChange As Double        Dim Volume As Double        Dim SumRow As Integer                OpenAmt = 0        CloseAmt = 0        QuartChange = 0        SumRow = 2        Volume = 0                For j = 2 To lastRow                    If ws.Cells(j + 1, 1).Value = ws.Cells(j, 1).Value Then                TickerName = ws.Cells(j, 1).Value                If OpenAmt = 0 Then                    OpenAmt = ws.Cells(j, 3)                End If                Volume = Volume + ws.Cells(j, 7)            ElseIf ws.Cells(j + 1, 1).Value <> ws.Cells(j, 1).Value Then                TickerName = ws.Cells(j, 1).Value                CloseAmt = ws.Cells(j, 6)                QuartChange = CloseAmt - OpenAmt                PercChange = (CloseAmt - OpenAmt) / OpenAmt * 100                Volume = Volume + ws.Cells(j, 7)                ws.Range("I" & SumRow).Value = TickerName                ws.Range("J" & SumRow).Value = QuartChange                ws.Range("K" & SumRow).Value = PercChange                ws.Range("L" & SumRow).Value = Volume                SumRow = SumRow + 1                OpenAmt = 0                Volume = 0                CloseAmt = 0            End If        Next j                Next wsEnd Sub        Sub FindMaxValueAndTicker()    Dim ws As Worksheet    Dim dataRange As Range    Dim cell As Range    Dim maxVal As Double    Dim maxTicker As String        For Each ws In ThisWorkbook.Worksheets        Set dataRange = ws.Range("K1:K" & ws.Cells(ws.Rows.Count, "K").End(xlUp).Row)            'Create the Greatest Increase, Decrease and volume Table       ws.Cells(1, 16).Value = "Ticker"       ws.Cells(1, 17).Value = "Value"       ws.Cells(2, 15).Value = "Greatest Increase"       ws.Cells(3, 15).Value = "Greatest Decrease"       ws.Cells(4, 15).Value = "Greatest Total Volume"            maxVal = -9999999                For Each cell In dataRange            If IsNumeric(cell.Value) Then                If cell.Value > maxVal Then                    maxVal = cell.Value                    maxTicker = cell.Offset(0, -2).Value                End If            End If        Next cell                ws.Range("Q2").Value = maxVal        ws.Range("P2").Value = maxTicker    Next wsEnd SubSub FindMinimumValueAndTicker()    Dim ws As Worksheet    Dim dataRange As Range    Dim cell As Range    Dim minVal As Double    Dim minTicker As String        For Each ws In ThisWorkbook.Worksheets        Set dataRange = ws.Range("K1:K" & ws.Cells(ws.Rows.Count, "K").End(xlUp).Row)            minVal = 9999999999#                For Each cell In dataRange            If IsNumeric(cell.Value) Then                If cell.Value < minVal Then                    minVal = cell.Value                    minTicker = cell.Offset(0, -2).Value                End If            End If        Next cell                ws.Range("Q3").Value = minVal        ws.Range("P3").Value = minTicker    Next wsEnd SubSub GreatestTotalVolume()Dim ws As Worksheet    Dim dataRange As Range    Dim cell As Range    Dim maxVol As Double    Dim maxTicker As String        For Each ws In ThisWorkbook.Worksheets        Set dataRange = ws.Range("L1:L" & ws.Cells(ws.Rows.Count, "L").End(xlUp).Row)          maxVol = -9999999                For Each cell In dataRange            If IsNumeric(cell.Value) Then                If cell.Value > maxVol Then                    maxVol = cell.Value                    maxTicker = cell.Offset(0, -3).Value                End If            End If        Next cell                ws.Range("Q4").Value = maxVol        ws.Range("P4").Value = maxTicker    Next wsEnd SubSub formatColumns()    Dim ws As Worksheet    Dim lastRow As Long    Dim QuarterlyChange As Double        For Each ws In ThisWorkbook.Worksheets        lastRow = ws.Cells(Rows.Count, 10).End(xlUp).Row        ws.Columns("B:B").NumberFormat = "mm/dd/yyyy"        ws.Columns("J:J").NumberFormat = "$#,##0.00"        ws.Columns("K:K").NumberFormat = "0.00%"        ws.Range("Q2:Q3").NumberFormat = "0.00%"        ws.Range("Q4").NumberFormat = "$#,###,##0.00"            For i = 2 To lastRow            QuarterlyChange = ws.Range("J" & i).Value            If QuarterlyChange > 0 Then                ws.Range("J" & i).Interior.Color = vbGreen            ElseIf QuarterlyChange < 0 Then                ws.Range("J" & i).Interior.Color = vbRed            Else                ws.Range("J" & i).Interior.ColorIndex = xlNone                            End If        Next i    Next wsEnd Sub
